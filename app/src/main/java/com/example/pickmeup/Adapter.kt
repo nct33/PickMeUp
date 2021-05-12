@@ -1,11 +1,18 @@
 package com.example.pickmeup
 
+import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.os.AsyncTask
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
+import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.recyclerview.widget.RecyclerView
 import co.lujun.androidtagview.TagContainerLayout
 
@@ -23,18 +30,38 @@ class Adapter(
     override fun onBindViewHolder(holder : ViewHolder, position : Int) {
         val currentItem = feedList[position]
 
-        holder.image.setBackgroundResource(currentItem.image)
-        holder.content.text = currentItem.content
-        holder.source.text = currentItem.source
-        holder.feedTagView.tags = currentItem.tags
+        holder.type.text = currentItem.type
+        if (currentItem.type == "photo") {
+            DownloadImageFromInternet(holder.source).execute(currentItem.source)
+        }
+        holder.feedTagView.tags = arrayListOf(currentItem.category)
+    }
+
+    @SuppressLint("StaticFieldLeak")
+    @Suppress("DEPRECATION")
+    private inner class DownloadImageFromInternet(var imageView: ImageView) : AsyncTask<String, Void, Bitmap?>() {
+        override fun doInBackground(vararg urls: String): Bitmap? {
+            val imageURL = urls[0]
+            var image: Bitmap? = null
+            try {
+                val `in` = java.net.URL(imageURL).openStream()
+                image = BitmapFactory.decodeStream(`in`)
+            }
+            catch (e: Exception) {
+            }
+            return image
+        }
+        override fun onPostExecute(result: Bitmap?) {
+            imageView.setImageBitmap(result)
+        }
     }
 
     override fun getItemCount() = feedList.size
 
     inner class ViewHolder(items : View) : RecyclerView.ViewHolder(items), View.OnClickListener {
-        val image : View = items.findViewById(R.id.content_image)
-        val content : TextView = items.findViewById(R.id.content)
-        val source : TextView = items.findViewById(R.id.source)
+        val type : TextView = items.findViewById(R.id.type)
+        val source : ImageView = items.findViewById(R.id.source)
+        val author : TextView = items.findViewById(R.id.author)
         val feedTagView : TagContainerLayout = items.findViewById(R.id.tags)
 
         init {

@@ -41,7 +41,7 @@ class ContentFragment : Fragment() {
     ): View? {
 
         // Inflate the layout for this fragment
-        tags = resources.getStringArray(R.array.categories).toMutableList()
+        tags = Repository.getInstance()
         val contentView: View = inflater.inflate(R.layout.fragment_content, container, false)
         myTagView = contentView.findViewById(R.id.myTagView)
         tagView = contentView.findViewById(R.id.tagView)
@@ -73,6 +73,8 @@ class ContentFragment : Fragment() {
             override fun onTagClick(position: Int, text: String) {
                 tagView.removeTag(position)
                 myTagView.addTag(text)
+
+
 
                 tagSearchArchive = tagView.tags
             }
