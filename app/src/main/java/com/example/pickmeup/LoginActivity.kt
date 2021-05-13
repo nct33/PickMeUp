@@ -73,7 +73,7 @@ class LoginActivity : AppCompatActivity() {
         //Login Button functions
         login.setOnClickListener {
             loginDialog = AlertDialog.Builder(this)
-            loginDialog.setTitle("Log in Here")
+            loginDialog.setTitle("Login here")
 
             val viewGroup : ViewGroup = findViewById(android.R.id.content);
             val dialogView : View = LayoutInflater.from(this@LoginActivity).inflate(R.layout.login_alert, viewGroup, false);
@@ -101,7 +101,7 @@ class LoginActivity : AppCompatActivity() {
         //Register Button Functions
         register.setOnClickListener {
             loginDialog = AlertDialog.Builder(this)
-            loginDialog.setTitle("Register Here")
+            loginDialog.setTitle("Register here")
 
             val viewGroup : ViewGroup = findViewById(android.R.id.content);
             val dialogView : View = LayoutInflater.from(this@LoginActivity).inflate(R.layout.register_alert, viewGroup, false);
