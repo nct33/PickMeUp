@@ -109,6 +109,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 R.id.home -> {
                     setFragment(HomeFragment.newInstance())
+                    FeedRepository.emptyFeed()
                     getPreferredFeed(UserRepository.getSession()!!.session_token,
                         UserRepository.getSession()!!.id)
                 }
