@@ -1,8 +1,8 @@
 package com.example.pickmeup
 
-data class Feed(var type : String,
-                var author : String,
-                var category : String,
-                var source : String)
+data class Feed(var category : String,
+                var source : String,
+                var type : String,
+                var author : String)
 
-data class ImageObtain(var data : MutableList<Feed>)
+data class ObtainFeed(var data : MutableList<Feed>)

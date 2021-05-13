@@ -18,11 +18,6 @@ private const val ARG_PARAM1 = "param1"
 private const val ARG_PARAM2 = "param2"
 private lateinit var contentFeed : RecyclerView
 
-/**
- * A simple [Fragment] subclass.
- * Use the [HomeFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
 class HomeFragment : Fragment(), Adapter.SetListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,7 +35,7 @@ class HomeFragment : Fragment(), Adapter.SetListener {
 
         contentFeed = homeView.findViewById(R.id.content_feed)
 
-        val adapter = Adapter(arrayListOf(), this)
+        val adapter = Adapter(FeedRepository.getInstance(), this)
         contentFeed.adapter = adapter
         contentFeed.layoutManager = LinearLayoutManager(requireContext())
 

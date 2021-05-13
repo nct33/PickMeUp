@@ -3,12 +3,13 @@ package com.example.pickmeup
 import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
-import android.os.Looper
+import android.os.Handler
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -35,6 +36,12 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var password : EditText
     private lateinit var email : EditText
 
+    private lateinit var background : ImageView
+
+    private val imageArray : Array<Int> = arrayOf(R.drawable.relaxing_1, R.drawable.relaxing_2,
+        R.drawable.relaxing_3, R.drawable.relaxing_4, R.drawable.relaxing_5,
+    )
+
     private var check : Boolean = true
     private var count : Int = 0
 
@@ -43,6 +50,22 @@ class LoginActivity : AppCompatActivity() {
         setContentView(R.layout.login)
 
         UserRepository.empty()
+
+        background = findViewById(R.id.login_background)
+
+        val handler = Handler()
+        val runnable: Runnable = object : Runnable {
+            var i = 0
+            override fun run() {
+                background.setImageResource(imageArray.get(i))
+                i++
+                if (i > imageArray.size - 1) {
+                    i = 0
+                }
+                handler.postDelayed(this, 10000)
+            }
+        }
+        handler.postDelayed(runnable, 10000)
 
         login = findViewById(R.id.login_button)
         register = findViewById(R.id.register_button)
@@ -61,7 +84,7 @@ class LoginActivity : AppCompatActivity() {
             loginDialog.setPositiveButton("Log in") { _: DialogInterface, _: Int ->
                 logIn(email.text.toString(), password.text.toString())
                 if(check && count > 0) {
-                    Toast.makeText(this@LoginActivity, "Register not successful, " +
+                    Toast.makeText(this@LoginActivity, "Login not successful, " +
                             "Please try again", Toast.LENGTH_SHORT
                     ).show()
                     count=1
@@ -117,7 +140,7 @@ class LoginActivity : AppCompatActivity() {
             val body = info.toRequestBody("application/json; charset=utf-8".toMediaType())
 
             val request: Request = Request.Builder()
-                .url("https://prod-pvnxn5ufaq-uc.a.run.app/api/register/")
+                .url("https://work-pvnxn5ufaq-uc.a.run.app/api/register/")
                 .post(body)
                 .build()
 
@@ -210,6 +233,9 @@ class LoginActivity : AppCompatActivity() {
                         if (login!!.success) {
                             FeedRepository.emptyFeed()
                             getCategories()
+                            getUserCategories(UserRepository.getSession()!!.session_token,
+                                UserRepository.getSession()!!.id
+                            )
                             val intent: Intent = Intent(
                                 this@LoginActivity,
                                 MainActivity::class.java
@@ -236,6 +262,7 @@ class LoginActivity : AppCompatActivity() {
                     }
 
                     val responseCategories = response.body!!.string()
+                    println(responseCategories)
 
                     val moshi = Moshi.Builder()
                         .addLast(KotlinJsonAdapterFactory())
@@ -269,6 +296,7 @@ class LoginActivity : AppCompatActivity() {
                     }
 
                     val responseCategories = response.body!!.string()
+                    println(responseCategories)
 
                     val moshi = Moshi.Builder()
                         .addLast(KotlinJsonAdapterFactory())
@@ -277,7 +305,10 @@ class LoginActivity : AppCompatActivity() {
 
                     val categories = adapter.fromJson(responseCategories)
 
-                    Repository.setTags(categories!!.data.getUserTags())
+                    CategoryRepository.setTags(categories!!.data.getUserTags())
+                    val unusedCategories =
+                        Repository.getInstance() subtract CategoryRepository.getInstance()
+                    Repository.setTags(unusedCategories.toMutableList())
                 }
             }
         }

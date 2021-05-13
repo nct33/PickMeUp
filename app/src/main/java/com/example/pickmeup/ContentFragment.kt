@@ -1,5 +1,6 @@
 package com.example.pickmeup
 
+import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -10,11 +11,16 @@ import android.widget.EditText
 import androidx.fragment.app.Fragment
 import co.lujun.androidtagview.TagContainerLayout
 import co.lujun.androidtagview.TagView.OnTagClickListener
-
-
-// TODO: Rename parameter arguments, choose names that match
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 
 class ContentFragment : Fragment() {
 
@@ -30,8 +36,6 @@ class ContentFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
         }
     }
 
@@ -46,7 +50,8 @@ class ContentFragment : Fragment() {
         myTagView = contentView.findViewById(R.id.myTagView)
         tagView = contentView.findViewById(R.id.tagView)
         tagView.tags = tags
-        tagSearchArchive = tags
+        myTagView.tags = CategoryRepository.getInstance()
+
         searchBar = contentView.findViewById(R.id.searchText)
 
         //remove selected tag
@@ -54,8 +59,10 @@ class ContentFragment : Fragment() {
             override fun onTagClick(position: Int, text: String) {
                 myTagView.removeTag(position)
                 tagView.addTag(text)
+                delete(UserRepository.getSession()!!.session_token, UserRepository.getSession()!!.id,
+                    text)
 
-                tagSearchArchive = tagView.tags
+                Repository.setTags(tagView.tags)
             }
 
             override fun onTagLongClick(position: Int, text: String) {
@@ -73,10 +80,10 @@ class ContentFragment : Fragment() {
             override fun onTagClick(position: Int, text: String) {
                 tagView.removeTag(position)
                 myTagView.addTag(text)
+                add(UserRepository.getSession()!!.session_token, UserRepository.getSession()!!.id,
+                    text)
 
-
-
-                tagSearchArchive = tagView.tags
+                Repository.setTags(tagView.tags)
             }
 
             override fun onTagLongClick(position: Int, text: String) {
@@ -99,9 +106,9 @@ class ContentFragment : Fragment() {
                 val search : String = searchBar.text.toString()
                 val list : MutableList<String> = arrayListOf()
 
-                for (i in tagSearchArchive.indices) {
-                    if (tagSearchArchive[i].contains(search))
-                        list.add(tagSearchArchive[i])
+                for (i in Repository.getInstance().indices) {
+                    if (Repository.getInstance()[i].contains(search))
+                        list.add(Repository.getInstance()[i])
                 }
 
                 tagView.tags = list
@@ -112,14 +119,89 @@ class ContentFragment : Fragment() {
     }
 
     companion object {
-        // TODO: Rename and change types and number of parameters
         @JvmStatic
         fun newInstance() =
             ContentFragment().apply {
                 arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
                 }
             }
+    }
+
+    private val client = OkHttpClient()
+
+    private fun add(authorization : String, userID : Int, category : String) {
+
+        CoroutineScope(Dispatchers.Main).launch {
+            val info ="""{"authorization": "$authorization", "category": "$category"}"""
+
+            val body = info.toRequestBody("application/json; charset=utf-8".toMediaType())
+
+            val request: Request = Request.Builder()
+                .url("https://work-pvnxn5ufaq-uc.a.run.app/api/$userID/category/")
+                .post(body)
+                .build()
+
+            withContext(Dispatchers.IO) {
+                client.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) {
+                    } else {
+                        for ((name, value) in response.headers) {
+                            println("$name: $value")
+                        }
+
+                        val response = response.body!!.string()
+
+                        println(response)
+
+                        val moshi = Moshi.Builder()
+                            .addLast(KotlinJsonAdapterFactory())
+                            .build()
+                        val adapter = moshi.adapter(UserPref::class.java)
+
+                        val categories = adapter.fromJson(response)
+
+                        CategoryRepository.setTags(categories!!.data.getUserTags())
+                    }
+                }
+            }
+        }
+    }
+
+    private fun delete(authorization : String, userID : Int, category : String) {
+
+        CoroutineScope(Dispatchers.Main).launch {
+            val info ="""{"authorization": "$authorization", "category": "$category"}"""
+
+            val body = info.toRequestBody("application/json; charset=utf-8".toMediaType())
+
+            val request: Request = Request.Builder()
+                .url("https://work-pvnxn5ufaq-uc.a.run.app/api/$userID/category/")
+                .delete(body)
+                .build()
+
+            withContext(Dispatchers.IO) {
+                client.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) {
+                    } else {
+                        for ((name, value) in response.headers) {
+                            println("$name: $value")
+                        }
+
+                        val response = response.body!!.string()
+
+                        println(response)
+
+                        val moshi = Moshi.Builder()
+                            .addLast(KotlinJsonAdapterFactory())
+                            .build()
+                        val adapter = moshi.adapter(UserPref::class.java)
+
+                        val categories = adapter.fromJson(response)
+
+                        CategoryRepository.setTags(categories!!.data.getUserTags())
+                    }
+                }
+            }
+        }
     }
 }

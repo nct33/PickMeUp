@@ -32,8 +32,11 @@ class Adapter(
 
         holder.type.text = currentItem.type
         if (currentItem.type == "photo") {
-            DownloadImageFromInternet(holder.source).execute(currentItem.source)
+            DownloadImageFromInternet(holder.source_image).execute(currentItem.source)
+        } else {
+            holder.source_quote.text = currentItem.source
         }
+        holder.author.text = currentItem.author
         holder.feedTagView.tags = arrayListOf(currentItem.category)
     }
 
@@ -60,7 +63,8 @@ class Adapter(
 
     inner class ViewHolder(items : View) : RecyclerView.ViewHolder(items), View.OnClickListener {
         val type : TextView = items.findViewById(R.id.type)
-        val source : ImageView = items.findViewById(R.id.source)
+        val source_image : ImageView = items.findViewById(R.id.source_image)
+        val source_quote : TextView = items.findViewById(R.id.source_quote)
         val author : TextView = items.findViewById(R.id.author)
         val feedTagView : TagContainerLayout = items.findViewById(R.id.tags)
 

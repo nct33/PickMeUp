@@ -9,13 +9,14 @@
             android:icon="@drawable/ic_menu_camera"
             android:title="@string/menu_change_profile_image" />
         <item
-            android:id="@+id/nav_change_name"
-            android:icon="@drawable/ic_menu_gallery"
-            android:title="@string/menu_change_name" />
-        <item
             android:id="@+id/nav_update_token"
+            android:icon="@drawable/ic_menu_gallery"
+            android:title="@string/menu_session_info"
+            />
+        <item
+            android:id="@+id/nav_log_out"
             android:icon="@drawable/ic_menu_slideshow"
-            android:title="@string/menu_session_expiration"
+            android:title="@string/menu_log_out"
             />
     </group>
 

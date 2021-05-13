@@ -86,12 +86,17 @@ class MainActivity : AppCompatActivity() {
                     openGallery()
                     true
                 }
-                R.id.nav_change_name -> {
+                R.id.nav_update_token -> {
+                    updateToken(UserRepository.getSession()!!.update_token)
                     true
                 }
-                else -> {
-                    false
+                R.id.nav_log_out -> {
+                    UserRepository.empty()
+                    val intent = Intent(this, LoginActivity::class.java)
+                    startActivity(intent)
+                    true
                 }
+                else -> false
             }
         }
 
@@ -104,7 +109,6 @@ class MainActivity : AppCompatActivity() {
                 }
                 R.id.home -> {
                     setFragment(HomeFragment.newInstance())
-                    //val dummy_session_token = "0d86e33051df5d0f5df9c0b2f92ab5325b5d9acb"
                     getPreferredFeed(UserRepository.getSession()!!.session_token,
                         UserRepository.getSession()!!.id)
                 }
@@ -126,52 +130,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.profile_sidebar, menu)
-        return true
-    }
-
     override fun onSupportNavigateUp(): Boolean {
         val navController = findNavController(R.id.nav_host_fragment)
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
 
     private val client = OkHttpClient()
-
-    private fun getImages(authorization : String, category : String, userID : Int) {
-        CoroutineScope(Dispatchers.Main).launch {
-            val info ="""{"authorization": "$authorization", "category": "$category"}"""
-
-            val body = info.toRequestBody("application/json; charset=utf-8".toMediaType())
-
-            val request: Request = Request.Builder()
-                .url("https://work-pvnxn5ufaq-uc.a.run.app/api/data/$userID/")
-                .post(body)
-                .build()
-
-            withContext(Dispatchers.IO) {
-                client.newCall(request).execute().use { response ->
-                    if (!response.isSuccessful) throw IOException("Unexpected code $response")
-                    for ((name, value) in response.headers) {
-                        println("$name: $value")
-                    }
-
-                    val response_feed = response.body!!.string()
-
-                    val moshi = Moshi.Builder()
-                        .addLast(KotlinJsonAdapterFactory())
-                        .build()
-                    val adapter = moshi.adapter(ImageObtain::class.java)
-
-                    val feed = adapter.fromJson(response_feed)
-                    for(i in feed!!.data.indices) {
-                        FeedRepository.addFeed(imageToFeed(feed.data[i]))
-                    }
-                }
-            }
-        }
-    }
 
     private fun getPreferredFeed(authorization : String, userID : Int) {
         CoroutineScope(Dispatchers.Main).launch {
@@ -197,23 +161,54 @@ class MainActivity : AppCompatActivity() {
                     val moshi = Moshi.Builder()
                         .addLast(KotlinJsonAdapterFactory())
                         .build()
-                    val adapter = moshi.adapter(ImageObtain::class.java)
+                    val adapter = moshi.adapter(ObtainFeed::class.java)
 
                     val feed = adapter.fromJson(responseFeed)
 
-                    for(i in feed!!.data.indices) {
-                        FeedRepository.addFeed(imageToFeed(feed.data[i]))
-                    }
+                    FeedRepository.addFeedList(feed!!.data)
                 }
             }
         }
     }
 
-    private fun imageToFeed(image: Image) : Feed {
-        return Feed(image.photographer,
-            image.category,
-            image.photo
-        )
+    private fun updateToken(authorization : String) {
+        CoroutineScope(Dispatchers.Main).launch {
+            val info ="""{"authorization": "$authorization"}"""
+
+            val body = info.toRequestBody("application/json; charset=utf-8".toMediaType())
+
+            val request: Request = Request.Builder()
+                .url("https://work-pvnxn5ufaq-uc.a.run.app/api/update_session/")
+                .post(body)
+                .build()
+
+            withContext(Dispatchers.IO) {
+                client.newCall(request).execute().use { response ->
+                    if (!response.isSuccessful) throw IOException("Unexpected code $response")
+                    for ((name, value) in response.headers) {
+                        println("$name: $value")
+                    }
+
+                    val responseSession = response.body!!.string()
+                    println(responseSession)
+
+                    val moshi = Moshi.Builder()
+                        .addLast(KotlinJsonAdapterFactory())
+                        .build()
+                    val adapter = moshi.adapter(LoginUser::class.java)
+
+                    val login = adapter.fromJson(responseSession)
+
+                    UserRepository.setUser(
+                        Session(
+                            login!!.data.id, login!!.data.name, login!!.data.email,
+                            login!!.data.session_token, login!!.data.session_expiration,
+                            login!!.data.update_token
+                        )
+                    )
+                }
+            }
+        }
     }
 
     private fun openGallery() {

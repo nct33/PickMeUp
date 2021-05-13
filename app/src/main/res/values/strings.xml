@@ -12,8 +12,8 @@
     <string name="action_logout">Log Out</string>
 
     <string name="menu_change_profile_image">Change Profile pic</string>
-    <string name="menu_session_expiration">Session</string>
-    <string name="menu_change_name">Change Name</string>
+    <string name="menu_session_info">Session Data</string>
+    <string name="menu_log_out">Log Out</string>
 
     <!--Login Screen Strings-->
     <string name="description">The Feel Good App</string>

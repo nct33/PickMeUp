@@ -16,11 +16,18 @@
         />
 
     <ImageView
-        android:id="@+id/source"
-        android:scaleType="fitCenter"
+        android:id="@+id/source_image"
+        android:scaleType="centerCrop"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintTop_toBottomOf="@+id/type"
+        />
+
+    <TextView
+        android:id="@+id/source_quote"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@+id/source_image"
         />
 
     <LinearLayout
@@ -29,20 +36,21 @@
         android:layout_height="wrap_content"
         android:layout_weight="34"
         android:orientation="vertical"
-        app:layout_constraintBottom_toTopOf="@+id/source"
+        android:gravity="center_horizontal"
+        app:layout_constraintTop_toBottomOf="@id/source_quote"
         >
 
         <TextView
             android:id="@+id/author"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="bottom|start"
+            android:gravity="center_horizontal"
             android:textSize="14sp" />
 
         <co.lujun.androidtagview.TagContainerLayout
             android:id="@+id/tags"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="40dp"
             android:gravity="bottom|start"
             app:tag_clickable="false" />
 
